@@ -1,6 +1,7 @@
 # Panduan Penggunaan Lengkap ZLCE (Usage Guide)
 
-Dokumen ini memuat panduan operasional detail untuk metodologi dan perangkat **ZLCE (Zero-Loss Context Engineering) v3.2.2**.
+Dokumen ini memuat panduan operasional detail untuk metodologi dan perangkat **ZLCE (Zero-Loss Context Engineering) v3.2.2**.  
+Repositori Resmi: [github.com/acimau99-netizen/ZLCE3.22-studio](https://github.com/acimau99-netizen/ZLCE3.22-studio)
 
 ---
 
@@ -13,6 +14,7 @@ Dokumen ini memuat panduan operasional detail untuk metodologi dan perangkat **Z
 - [3. Protokol Pemulihan Darurat (Recovery Kasus A–D)](#3-protokol-pemulihan-darurat-recovery-kasus-ad)
 - [4. Aturan Triase Revisi (R1–R7)](#4-aturan-triase-revisi-r1r7)
 - [5. Format Blok Checkpoint & WAL](#5-format-blok-checkpoint--wal)
+- [6. Perangkat CLI & Skrip Pembantu](#6-perangkat-cli--skrip-pembantu)
 
 ---
 
@@ -118,3 +120,34 @@ Timestamp: 2026-10-22T06:00:00Z (atau "jam: ?")
 ```
 
 Aturan jam (`X1`): Jika lingkungan AI tidak memiliki akses jam sistem tepercaya, AI wajib menulis `"jam: ?"` dan dilarang mengarang/mengekstrapolasi waktu secara halusinasi.
+ 
+---
+
+## 6. Perangkat CLI & Skrip Pembantu
+
+Paket ZLCE v3.2.2 menyertakan 3 skrip otomatisasi Python & Bash untuk validasi dan pemulihan:
+
+### A. Lokasi Kanonik vs Wrapper
+- **Direktori Kanonik:** `scripts/zlce/` (salin folder ini ke dalam repositori proyek Anda).
+- **Wrapper Ringkas:** `scripts/` (pembungkus tipis di root untuk kemudahan akses).
+
+### B. Daftar Perintah
+1. **Pemeriksaan Integritas Dokumen State:**
+   ```bash
+   # Validasi SESSION_STATE.md di repositori aktif
+   python3 scripts/zlce/zlce-check.py .
+
+   # Validasi berkas state spesifik tanpa git aktif
+   python3 scripts/zlce/zlce-check.py --state examples/SESSION_STATE.example.md --no-git
+   ```
+2. **Snapshot Pemulihan Sesi (Recovery):**
+   ```bash
+   # Cetak snapshot status git, commit log, dan WAL terkini
+   bash scripts/zlce/zlce-snapshot.sh --diff
+   ```
+3. **Kolektor Diagnostik Evaluasi:**
+   ```bash
+   # Kumpulkan bundle diagnostik untuk laporan evaluasi
+   python3 scripts/zlce/zlce-collect.py .
+   ```
+

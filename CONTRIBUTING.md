@@ -35,7 +35,7 @@ python3 scripts/zlce/zlce-check.py --state examples/SESSION_STATE.example.md --n
 
 ## Alur Pull Request
 
-1. Fork repositori: `https://github.com/acimau99-netizen/ZLCEv3.2.2`.
+1. Fork repositori: `https://github.com/acimau99-netizen/ZLCE3.22-studio`.
 2. Buat branch baru dari `main` (contoh: `git checkout -b feat/nama-perbaikan`).
 3. Commit perubahan dengan pesan yang deskriptif dan jelas.
 4. Pastikan semua pemeriksaan lokal (`lint`, `build`, `zlce-check.py`) lulus.
