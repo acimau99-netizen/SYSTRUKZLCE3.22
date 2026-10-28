@@ -1,0 +1,8 @@
+{
+  "name": "ZLCE Studio v3.2",
+  "description": "Zero-Loss Context Engineering Studio: AI agent context control workbench, SESSION_STATE linter, prompt generator, and recovery protocol simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
