@@ -82,6 +82,8 @@ def main(argv):
     for d in {i for i in ids if ids.count(i) > 1}:
         errors.append("ID task duplikat di matriks: %s" % d)
 
+    if not rows:
+        errors.append("Matriks Task di Bagian 2 kosong (tidak ada task terdaftar)")
     for r in rows:
         if r["status"] not in ENUM:
             errors.append("%s: status '%s' bukan enum sah %s" % (r["id"], r["status"], sorted(ENUM)))
@@ -101,15 +103,23 @@ def main(argv):
         if r["status"] == "PENDING" and r["deps"] and deps_done:
             warns.append("%s PENDING padahal semua dependensi DONE (seharusnya READY)" % r["id"])
         if r["status"] == "DONE":
-            if r["evidence"] in ("", "-"):
+            if (r["evidence"] or "").strip() in ("", "-"):
                 errors.append("%s DONE tanpa Bukti Verifikasi" % r["id"])
-            if r["approved"] not in ("ya", "yes"):
+            clean_appr = (r["approved"] or "").strip().lower()
+            if clean_appr not in ("ya", "yes"):
                 errors.append("%s DONE tanpa persetujuan pengguna (Disetujui != ya)" % r["id"])
-        if r["status"] in ("PENDING", "READY") and r["evidence"] not in ("", "-"):
+        if r["status"] in ("PENDING", "READY") and (r["evidence"] or "").strip() not in ("", "-"):
             warns.append("%s %s tetapi kolom bukti terisi" % (r["id"], r["status"]))
 
     # --- header vs matriks
     s1 = section(text, 1)
+    audit_ts = field(s1, "Timestamp Audit") or ""
+    # Rule X1: Anti-ekstrapolasi jam (wajib ISO-8601, jam valid, atau fallback 'YYYY-MM-DD jam: ?')
+    if audit_ts:
+        has_valid_clock = re.search(r"(\d{4}-\d{2}-\d{2}\s+(jam:\s*\?|\d{1,2}:\d{2}))|\d{4}-\d{2}-\d{2}T", audit_ts)
+        if not has_valid_clock:
+            warns.append("Timestamp Audit '%s' melanggar Aturan Jam X1 (gunakan 'YYYY-MM-DD jam: ?' bila jam tidak pasti)" % audit_ts)
+
     active = first_tid(field(s1, "Task Aktif"))
     act_status = (field(s1, "Status Task Aktif") or "").strip("` ")
     last_done = first_tid(field(s1, "Task Terakhir DONE"))

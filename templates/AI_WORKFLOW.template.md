@@ -112,16 +112,17 @@ Prinsip: sesi bisa putus kapan saja (kuota, timeout, tab tertutup). Yang selamat
 
 1. **WAL (tulis-dahulu):** sebelum langkah yang menyentuh > 1 berkas atau > ~30 menit kerja, isi `SESSION_STATE.md` bagian 3: Task, Langkah Sedang Dikerjakan, Berkas Direncanakan/Disentuh, Langkah Berikutnya (persis), Perintah Verifikasi. Sesudah langkah selesai, perbarui `Sudah Dilakukan` dan `Langkah Berikutnya`. Kosongkan saat task `DONE`.
 2. **Commit titik-simpan:** setelah tiap langkah WAL yang menghasilkan kode utuh (build/lint tidak rusak), buat commit `wip(...)` di branch fitur. Dilarang meninggalkan perubahan besar tanpa commit antar-langkah.
-3. **Checkpoint Block (AI tanpa akses tulis berkas):** berlaku sejak `SESSION_STATE.md` ada (setelah Gerbang 4); sebelum itu tidak ada state dan pengguna menyimpan tiap berkas gerbang yang disetujui. Di akhir SETIAP respons yang mengubah status, menyelesaikan langkah WAL, atau menambah keputusan, AI mencetak blok berikut persis dalam format `SESSION_STATE.md` agar pengguna menempel/menimpa:
+3. **Checkpoint Block (AI tanpa akses tulis berkas):** berlaku sejak `SESSION_STATE.md` ada (setelah Gerbang 4); sebelum itu tidak ada state dan pengguna menyimpan tiap berkas gerbang yang disetujui. Di akhir SETIAP respons yang mengubah status, menyelesaikan langkah WAL, atau menambah keputusan, AI mencetak blok kanonik berikut:
 
-```text
-=== ZLCE CHECKPOINT [YYYY-MM-DD (HH:MM TZ | jam: ?)] ===
-## 1. STATUS AKTIF        (salinan lengkap bagian 1)
-## 2. MATRIKS TASK        (hanya baris yang berubah)
-## 3. WORK IN PROGRESS (WAL)  (salinan lengkap bagian 3)
-## 6. CATATAN SERAH TERIMA (hanya bila berubah)
-## 7. LOG AUDIT           (satu baris baru)
-=== END CHECKPOINT ===
+```zlce-checkpoint
+TASK: <TASK-ID>
+STATUS: <IN_PROGRESS | BLOCKED | DONE>
+BASE_COMMIT: <git-sha-7>
+STEP_COMPLETED: <ringkasan langkah yang tuntas>
+EVIDENCE: <output perintah uji konkret / exit code>
+NEXT_STEP: <langkah persis berikutnya>
+VERIFICATION_CMD: <perintah shell verifikasi>
+TIMESTAMP: <YYYY-MM-DD (HH:MM TZ | jam: ?)>
 ```
 
    ATURAN KERAS TIMESTAMP: Jika jam eksplisit tidak tersedia di pesan pengguna atau snapshot repositori, WAJIB menulis tanggal saja dan 'jam: ?' (contoh: [2026-10-14 jam: ?]). DILARANG mengarang jam (seperti +5 atau +10 menit).
@@ -152,7 +153,7 @@ Dipicu bila `SESSION_STATE.md` bagian 3 (WAL) berisi task, atau pengguna menyata
 
 ## 10. MODE LITE
 
-Berkas kontrol: `BLUEPRINT.md`, `TASKS.md`, `SESSION_STATE.md`, `HANDOVER.md`. Aturan lain tetap berlaku.
+Berkas kontrol: `BLUEPRINT.md`, `TASKS.md`, `SESSION_STATE.md`, `AI_WORKFLOW_CORE.md`, `HANDOVER.md`. Aturan lain tetap berlaku.
 1. Model data ditulis di `BLUEPRINT.md` bagian 7; strategi uji di bagian 8. `DATA_MODEL.md` dan `TESTING.md` tidak dibuat.
 2. `Docs Impact` hanya boleh merujuk dokumen yang ada (di LITE: `BLUEPRINT`, `TASKS`).
 3. `Test Case` pada task merujuk nama atau path test (mis. `tests/test_migrations.py::test_down`), bukan ID `TC-xx`.

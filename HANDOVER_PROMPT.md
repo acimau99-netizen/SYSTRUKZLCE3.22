@@ -30,11 +30,11 @@ LANGKAH 1 - MODE NORMAL
 LANGKAH 2 - MODE RECOVERY (sesi putus)
 1. Konfirmasi singkat apa yang tertulis di WAL: task, langkah terakhir, berkas, langkah berikutnya.
 2. Butuh data repositori: `git status --short`, `git log -5`, `git diff --stat` (atau RECOVERY SNAPSHOT). Belum ada = MINTA dan berhenti.
-3. Klasifikasikan dan laporkan ke pengguna sebelum bertindak:
-   - A: working tree bersih, tidak ada commit baru -> ulangi dari `Langkah Berikutnya` WAL.
+3. Klasifikasikan dan laporkan ke pengguna sebelum bertindak (Evaluasi dengan urutan prioritas ketat: D > C > B > A):
+   - D (Prioritas Tertinggi): perubahan pada berkas di luar WAL -> TAHAN TINDAKAN, tandai task BLOCKED, laporkan dan tanyakan ke pengguna; jangan disentuh sebelum disetujui.
+   - C: ada commit baru di `git log <Base Commit>..HEAD` yang belum tercermin di state -> perbarui `SESSION_STATE.md`, verifikasi ulang.
    - B: perubahan tak ter-commit pada berkas WAL -> baca diff, nilai kelengkapan terhadap Acceptance Criteria, lanjutkan. Dilarang `reset`/`checkout`/menghapus perubahan tanpa persetujuan pengguna.
-   - C: ada commit bertanda task yang belum tercermin di state -> perbarui `SESSION_STATE.md`, verifikasi ulang.
-   - D: perubahan pada berkas di luar WAL -> laporkan dan tanyakan; jangan disentuh.
+   - A: working tree bersih dan HEAD == Base Commit (tidak ada commit baru) -> ulangi dari `Langkah Berikutnya` WAL.
 4. Dalam RECOVERY, `DONE` hanya dengan bukti verifikasi BARU. Klaim sesi lama bukan bukti.
 5. Catat di log audit: `RECOVERY: kasus [A-D], langkah dilanjutkan [..]`. Tulis ulang WAL sesuai kondisi aktual.
 6. Informasi yang tidak ada di berkas atau repositori = hilang. Tanyakan ke pengguna; jangan direka.

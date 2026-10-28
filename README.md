@@ -46,12 +46,14 @@ Hanya butuh **3 langkah ringkas** untuk memulai proyek software Anda bersama AI 
 
 ### Langkah 1: Tentukan Mode Proyek
 Pilih salah satu mode:
-* **Mode LITE (Default & Direkomendasikan untuk proyek < 15 task / 1–2 modul):**
-  Hanya membutuhkan 4 berkas kontrol inti:
-  1. `BLUEPRINT.md` (Gerbang 1)
-  2. `TASKS.md` (Gerbang 3)
-  3. `SESSION_STATE.md` (Gerbang 4)
-  4. `HANDOVER.md` (Serah terima)
+* **Mode LITE (Default untuk proyek < 15 task / 1–2 modul):**
+  Membutuhkan 5 berkas kontrol:
+  1. `BLUEPRINT.md` (Gerbang 1: visi, cakupan, dan skema data ringkas)
+  2. `TASKS.md` (Gerbang 3: daftar tugas atomik)
+  3. `SESSION_STATE.md` (Gerbang 4: Single Source of Truth & WAL)
+  4. `AI_WORKFLOW_CORE.md` (Gerbang 4: aturan main agen ringkas, enum, & recovery)
+  5. `HANDOVER.md` (Protokol serah-terima sesi)
+  *(Catatan Alur: Pada Mode LITE, Gerbang 2 dilewati karena arsitektur & skema ringkas disatukan langsung di Bagian 7–8 BLUEPRINT.md).*
 * **Mode FULL (Untuk sistem besar / multi-service / arsitektur kompleks > 15 task):**
   Membuat 10 dokumen kontrol lengkap bertahap melalui 4 Gerbang Persetujuan (`templates/`).
 

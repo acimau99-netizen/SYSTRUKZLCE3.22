@@ -63,8 +63,7 @@ Setelah tiap gerbang, BERHENTI dan tunggu persetujuan eksplisit. Jangan membuat 
 - **Gerbang 4:** `AI_WORKFLOW.md`, `CHECKLISTS.md`, `SESSION_STATE.md`, `CHANGELOG.md`, `HANDOVER.md`
   - `HANDOVER.md`: salinan VERBATIM blok prompt dari `HANDOVER_PROMPT.md` (jika tidak terlampir, minta pengguna menyalinnya; jangan menulis ulang).
   - `scripts/zlce/`: minta pengguna menyalin dari kit; jangan menulis ulang skrip.
-  - `SESSION_STATE.md` awal: semua field terisi, matriks sesuai `TASKS.md`, WAL kosong (`-`).
-LITE: Gerbang 1, lalu `TASKS.md` + `SESSION_STATE.md` + `HANDOVER.md`.
+LITE: Gerbang 1 (mencakup Model Data & Uji ringkas di Bagian 7–8 BLUEPRINT.md), lalu melompat langsung ke Gerbang 3 (TASKS.md), disusul Gerbang 4 (SESSION_STATE.md, AI_WORKFLOW_CORE.md, HANDOVER.md). Gerbang 2 dilewati.
 
 Batas output: bila respons akan terpotong, selesaikan satu berkas utuh per pesan dan sebutkan berkas berikutnya.
 

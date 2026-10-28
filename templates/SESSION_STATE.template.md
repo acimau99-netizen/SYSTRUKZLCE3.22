@@ -42,12 +42,19 @@ Bukti Verifikasi: ringkasan + lokasi bukti (mis. "lint 0 error, 12/12 test pass;
 Catatan tulis-dahulu: isi SEBELUM memulai langkah multi-berkas, perbarui SESUDAH langkah selesai. Kosongkan (semua `-`) saat task `DONE`.
 
 * **Task:** -
+* **Base Commit:** -
+* **Branch:** -
 * **Langkah Sedang Dikerjakan:** -
 * **Berkas Direncanakan/Disentuh:** -
 * **Sudah Dilakukan:** -
 * **Langkah Berikutnya (persis):** -
 * **Perintah Verifikasi:** -
 * **Diperbarui:** -
+
+### WAL_STACK (Task Dijeda akibat Preempt R7)
+| Stack ID | Task ID | Base Commit | Langkah Terakhir | Disimpan Pada |
+| :--- | :--- | :--- | :--- | :--- |
+| (kosong) | | | | |
 
 ---
 

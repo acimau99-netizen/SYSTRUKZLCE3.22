@@ -13,7 +13,17 @@ echo "waktu: $(date -Iseconds)"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "--- branch ---";                     git branch --show-current
   echo "--- git status --short ---";         git status --short
-  echo "--- git log -5 ---";                 git log -5 --format='%h %ad %s' --date=iso 2>/dev/null
+  base_commit=""
+  if [ -f SESSION_STATE.md ]; then
+    base_commit="$(awk -F':' '/^\* \*\*Base Commit:\*\*/{gsub(/[ `]/, "", $2); print $2}' SESSION_STATE.md)"
+  fi
+  if [ -n "$base_commit" ] && [ "$base_commit" != "-" ]; then
+    echo "--- git log ($base_commit..HEAD) ---"
+    git log "$base_commit..HEAD" --format='%h %ad %s' --date=iso 2>/dev/null || git log -10 --format='%h %ad %s' --date=iso 2>/dev/null
+  else
+    echo "--- git log -10 ---"
+    git log -10 --format='%h %ad %s' --date=iso 2>/dev/null
+  fi
   echo "--- git diff --stat (unstaged) ---"; git diff --stat
   echo "--- git diff --stat (staged) ---";   git diff --stat --cached
   if [ "$want_diff" = 1 ]; then

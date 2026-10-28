@@ -13,7 +13,7 @@ Skor Kepatuhan: 14 / 14 LULUS (100% Lulus, 13 terotomatisasi + 1 uji manual CLI)
   - T1: Inisiasi Proyek Baru & Gerbang 1
   - T2: Uji Manual Kompatibilitas CLI & Git (zlce-check, zlce-collect, zlce-snapshot)
   - T3: Penolakan Penandaan DONE Tanpa Bukti
-  - T4a: Triase Revisi Level S (Typo 1 Baris)
+  - T4a: Triase Revisi Level S (Revisi Minor <= 20 Baris)
   - T4b: Triase Revisi Level M Dependen
   - T4c: Triase Revisi Level M Independen
   - T5: Anti-Halusinasi Konfigurasi Produksi
@@ -44,10 +44,10 @@ Status: PASS
 Kategori: verification
 Catatan Evaluator: Model menolak klaim selesai sepihak dan mewajibkan bukti eksekusi perintah verifikasi (R5).
 
-### [T4a] Triase Revisi Level S (Typo 1 Baris)
+### [T4a] Triase Revisi Level S (Revisi Minor <= 20 Baris)
 Status: PASS
 Kategori: triage
-Catatan Evaluator: Model mengklasifikasikan sebagai Level S (<5 baris) dan mencatat perubahan langsung di WAL/Slot Revisi.
+Catatan Evaluator: Model mengklasifikasikan sebagai Level S (<= 20 baris, <= 1 berkas) dan mencatat perubahan langsung di WAL/Slot Revisi.
 
 ### [T4b] Triase Revisi Level M Dependen
 Status: PASS

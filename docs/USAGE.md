@@ -87,16 +87,16 @@ Ketika sesi AI terputus tiba-tiba atau token habis di tengah pekerjaan, bandingk
 
 ---
 
-## 4. Aturan Triase Revisi (R1–R7)
+## 4. Aturan Triase Revisi (Protokol Interupsi R7)
 
 Jika di tengah eksekusi pengguna meminta perubahan atau revisi:
 
-- **Level S (Revisi Ringan / Typo / Perubahan < 5 baris)**:
+- **Level S (Revisi Minor: <= 1 berkas, <= 20 baris, tanpa perubahan skema/kontrak/keamanan/dependensi/AC)**:
   - Dikerjakan langsung di dalam task aktif yang sedang berjalan tanpa membuat task baru.
-  - Dicatat di slot revisi atau baris log WAL.
+  - Dicatat di slot revisi atau baris log WAL; commit `[MINOR]`.
 - **Level M Dependen (Revisi Menengah Terkait Task Berjalan)**:
-  - Perbarui kriteria verifikasi dan daftar berkas terdampak pada task aktif.
-  - Tidak merusak urutan matriks task lain.
+  - Perbarui kriteria verifikasi (Acceptance Criteria) dan daftar berkas terdampak pada task aktif (Scope Change).
+  - Dilarang preempt task aktif; minta persetujuan pengguna sebelum eksekusi.
 - **Level M Independen / Fitur Baru**:
   - Dilarang menyisipkan perubahan secara liar pada task aktif.
   - Dijadwalkan sebagai task baru (`TASK-XXX` berstatus `PENDING`) di antrean berikutnya setelah task aktif selesai.
@@ -105,18 +105,17 @@ Jika di tengah eksekusi pengguna meminta perubahan atau revisi:
 
 ## 5. Format Blok Checkpoint & WAL
 
-Setiap interaksi kritis atau pembaruan status wajib mencantumkan blok checkpoint terstruktur:
+Setiap interaksi kritis atau pembaruan status wajib mencantumkan blok checkpoint terstruktur dalam format kanonik:
 
-```markdown
-<!-- ZLCE:CHECKPOINT:START -->
-Task: TASK-002
-Status: IN_PROGRESS
-Langkah Terakhir: Menambahkan skema migrasi database
-Langkah Berikutnya: Mengimplementasikan repository pattern
-Berkas Terdampak: src/db/schema.ts, src/db/index.ts
-Bukti Verifikasi: npm run lint lolos tanpa error
-Timestamp: 2026-10-22T06:00:00Z (atau "jam: ?")
-<!-- ZLCE:CHECKPOINT:END -->
+```zlce-checkpoint
+TASK: <TASK-ID>
+STATUS: <IN_PROGRESS | BLOCKED | DONE>
+BASE_COMMIT: <git-sha-7>
+STEP_COMPLETED: <ringkasan langkah yang tuntas>
+EVIDENCE: <output perintah uji konkret / exit code>
+NEXT_STEP: <langkah persis berikutnya>
+VERIFICATION_CMD: <perintah shell verifikasi>
+TIMESTAMP: <YYYY-MM-DD (HH:MM TZ | jam: ?)>
 ```
 
 Aturan jam (`X1`): Jika lingkungan AI tidak memiliki akses jam sistem tepercaya, AI wajib menulis `"jam: ?"` dan dilarang mengarang/mengekstrapolasi waktu secara halusinasi.

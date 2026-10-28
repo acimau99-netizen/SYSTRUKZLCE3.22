@@ -34,6 +34,7 @@ interface HeaderProps {
     resetToDefault?: () => void;
     lastSaved: Date | null;
     isSaved: boolean;
+    storageError?: string | null;
     hasStoredSession: boolean;
   };
 }
@@ -96,13 +97,23 @@ export const Header: React.FC<HeaderProps> = ({
             {persistence && (
               <div className="flex items-center space-x-1 sm:space-x-1.5 pl-1 border-l border-slate-800">
                 {/* Auto-save Status Pill */}
-                <div 
-                  className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-950/70 border border-slate-800 text-[11px] font-mono text-slate-400 select-none"
-                  title={persistence.lastSaved ? `Tersimpan di LocalStorage: ${persistence.lastSaved.toLocaleTimeString('id-ID')}` : 'Auto-save aktif'}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${persistence.isSaved ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`} />
-                  <span className="hidden lg:inline">{persistence.isSaved ? 'Tersimpan' : 'Menyimpan...'}</span>
-                </div>
+                {persistence.storageError ? (
+                  <div 
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-rose-950/80 border border-rose-700 text-[11px] font-mono text-rose-300 select-none"
+                    title={persistence.storageError}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                    <span>Gagal Simpan</span>
+                  </div>
+                ) : (
+                  <div 
+                    className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-950/70 border border-slate-800 text-[11px] font-mono text-slate-400 select-none"
+                    title={persistence.lastSaved ? `Tersimpan di LocalStorage: ${persistence.lastSaved.toLocaleTimeString('id-ID')}` : 'Auto-save aktif'}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${persistence.isSaved ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`} />
+                    <span className="hidden lg:inline">{persistence.isSaved ? 'Tersimpan' : 'Menyimpan...'}</span>
+                  </div>
+                )}
 
                 {/* Undo Button */}
                 <button

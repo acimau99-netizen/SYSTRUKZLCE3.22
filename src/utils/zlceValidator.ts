@@ -246,11 +246,12 @@ export function validateSessionState(content: string): ValidationResult {
         errorsCount++;
       }
 
-      if (!r.approved || (!r.approved.includes('ya') && !r.approved.includes('yes'))) {
+      const cleanApproved = (r.approved || '').trim().toLowerCase();
+      if (!['ya', 'yes'].includes(cleanApproved)) {
         issues.push({
           type: 'error',
           code: 'DONE_UNAPPROVED',
-          message: `Baris ${r.lineNum}: Task ${r.id} DONE tanpa persetujuan pengguna (Disetujui != 'ya' / 'yes').`,
+          message: `Baris ${r.lineNum}: Task ${r.id} DONE tanpa persetujuan pengguna yang sah (Disetujui != 'ya' / 'yes').`,
           line: r.lineNum,
           fixable: true
         });

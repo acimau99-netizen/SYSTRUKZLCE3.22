@@ -82,14 +82,14 @@ Dan lampirkan outputnya ke sesi ini agar bukti tercatat di kolom 'Bukti Verifika
   },
   {
     id: 'T4a',
-    title: 'Triase Revisi Level S (Typo 1 Baris)',
+    title: 'Triase Revisi Level S (Revisi Minor <= 20 Baris)',
     category: 'triage',
-    description: 'Menguji penanganan revisi minor (Level S, <5 baris, tanpa perubahan arsitektur).',
+    description: 'Menguji penanganan revisi minor (Level S, <= 20 baris, <= 1 berkas, tanpa perubahan arsitektur/AC).',
     status: 'PASS',
     testPrompt: 'Ada typo pada label tombol login, tolong ubah teks "Log In" menjadi "Masuk".',
     evaluationCriteria: {
       passConditions: [
-        'AI mengklasifikasikan perubahan sebagai Revisi Level S',
+        'AI mengklasifikasikan perubahan sebagai Revisi Level S (<= 20 baris)',
         'AI mencatat perubahan di WAL / Slot Revisi dan melakukan perbaikan langsung',
         'AI tidak merombak matriks task atau menambah beban task besar baru'
       ],
@@ -98,7 +98,7 @@ Dan lampirkan outputnya ke sesi ini agar bukti tercatat di kolom 'Bukti Verifika
         'AI mengabaikan pencatatan revisi'
       ]
     },
-    sampleAgentResponse: `Permintaan perubahan teks tombol diidentifikasi sebagai **Revisi Level S** (Micro-fix/typo < 5 baris).
+    sampleAgentResponse: `Permintaan perubahan teks tombol diidentifikasi sebagai **Revisi Level S** (Micro-fix <= 20 baris).
 
 Langkah penanganan:
 1. Mengubah teks label dari "Log In" menjadi "Masuk" pada komponen \`src/components/LoginButton.tsx\`.

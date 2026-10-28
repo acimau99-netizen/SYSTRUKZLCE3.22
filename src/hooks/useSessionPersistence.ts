@@ -1,12 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ParsedSessionState } from '../types/zlce';
-import { parseSessionStateMarkdown, serializeSessionStateToMarkdown } from '../utils/markdownParser';
+import { parseSessionStateMarkdown } from '../utils/markdownParser';
 import { INITIAL_SESSION_STATE_MD } from '../data/templates';
 
-const STORAGE_KEY_MARKDOWN = 'zlce_session_raw_markdown';
-const STORAGE_KEY_STATE = 'zlce_session_state_data';
-const STORAGE_KEY_LAST_SAVED = 'zlce_session_last_saved';
-const STORAGE_KEY_HISTORY = 'zlce_session_history';
+export const STORAGE_KEY_ENVELOPE = 'zlce_session_envelope_v3_3';
+
+// Legacy keys for seamless migration
+const LEGACY_STORAGE_KEY_MARKDOWN = 'zlce_session_raw_markdown';
+const LEGACY_STORAGE_KEY_STATE = 'zlce_session_state_data';
+const LEGACY_STORAGE_KEY_LAST_SAVED = 'zlce_session_last_saved';
+const LEGACY_STORAGE_KEY_HISTORY = 'zlce_session_history';
+
+export interface ZlceSessionEnvelope {
+  schemaVersion: '3.3.0';
+  envelopeId: string;
+  updatedAt: string;
+  projectName: string;
+  rawMarkdown: string;
+  stateData: ParsedSessionState;
+  history: Array<{
+    id: string;
+    timestamp: number;
+    label: string;
+    rawMarkdown: string;
+  }>;
+}
 
 export interface SessionSnapshot {
   id: string;
@@ -19,6 +37,7 @@ export interface SessionSnapshot {
 export interface UseSessionPersistenceReturn {
   lastSaved: Date | null;
   isSaved: boolean;
+  storageError: string | null;
   canUndo: boolean;
   canRedo: boolean;
   undo: () => boolean;
@@ -33,18 +52,71 @@ export interface UseSessionPersistenceReturn {
   historyIndex: number;
 }
 
-function saveLightweightHistory(snapshots: SessionSnapshot[]) {
+function loadEnvelopeOrMigrateLegacy(): {
+  envelope: ZlceSessionEnvelope | null;
+  lastSaved: Date | null;
+} {
   try {
-    const lightweight = snapshots.map(({ id, timestamp, label, rawMarkdown }) => ({
-      id,
-      timestamp,
-      label,
-      rawMarkdown
-    }));
-    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(lightweight));
-  } catch {
-    // Storage quota warning fallback
+    const rawEnvelope = localStorage.getItem(STORAGE_KEY_ENVELOPE);
+    if (rawEnvelope) {
+      const parsed = JSON.parse(rawEnvelope) as ZlceSessionEnvelope;
+      if (parsed && parsed.rawMarkdown) {
+        return {
+          envelope: parsed,
+          lastSaved: parsed.updatedAt ? new Date(parsed.updatedAt) : new Date()
+        };
+      }
+    }
+
+    // Fallback: migrate from legacy keys if available
+    const legacyMd = localStorage.getItem(LEGACY_STORAGE_KEY_MARKDOWN);
+    if (legacyMd && legacyMd.trim().length > 0) {
+      const legacySaved = localStorage.getItem(LEGACY_STORAGE_KEY_LAST_SAVED);
+      const legacyState = localStorage.getItem(LEGACY_STORAGE_KEY_STATE);
+      let parsedState: ParsedSessionState;
+      try {
+        parsedState = legacyState ? JSON.parse(legacyState) : parseSessionStateMarkdown(legacyMd);
+      } catch {
+        parsedState = parseSessionStateMarkdown(legacyMd);
+      }
+
+      let historyList: Array<{ id: string; timestamp: number; label: string; rawMarkdown: string }> = [];
+      const legacyHist = localStorage.getItem(LEGACY_STORAGE_KEY_HISTORY);
+      if (legacyHist) {
+        try {
+          const parsedH = JSON.parse(legacyHist);
+          if (Array.isArray(parsedH)) historyList = parsedH;
+        } catch {
+          // ignore
+        }
+      }
+
+      const migratedEnvelope: ZlceSessionEnvelope = {
+        schemaVersion: '3.3.0',
+        envelopeId: 'migrated-' + Date.now(),
+        updatedAt: legacySaved || new Date().toISOString(),
+        projectName: parsedState.context?.projectName || 'Project',
+        rawMarkdown: legacyMd,
+        stateData: parsedState,
+        history: historyList
+      };
+
+      // Atomic save of migrated envelope
+      try {
+        localStorage.setItem(STORAGE_KEY_ENVELOPE, JSON.stringify(migratedEnvelope));
+      } catch {
+        // ignore
+      }
+
+      return {
+        envelope: migratedEnvelope,
+        lastSaved: legacySaved ? new Date(legacySaved) : new Date()
+      };
+    }
+  } catch (err) {
+    console.warn('[ZLCE Envelope] Gagal memuat envelope:', err);
   }
+  return { envelope: null, lastSaved: null };
 }
 
 export function useSessionPersistence(
@@ -56,43 +128,27 @@ export function useSessionPersistence(
 ): UseSessionPersistenceReturn {
   const { maxHistory = 30, debounceMs = 400 } = options;
 
-  const [lastSaved, setLastSaved] = useState<Date | null>(() => {
-    try {
-      const savedTime = localStorage.getItem(STORAGE_KEY_LAST_SAVED);
-      return savedTime ? new Date(savedTime) : null;
-    } catch {
-      return null;
-    }
-  });
-
+  const initialLoadRef = useRef(loadEnvelopeOrMigrateLegacy());
+  const [lastSaved, setLastSaved] = useState<Date | null>(() => initialLoadRef.current.lastSaved);
   const [isSaved, setIsSaved] = useState<boolean>(true);
+  const [storageError, setStorageError] = useState<string | null>(null);
+
   const [hasStoredSession, setHasStoredSession] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_MARKDOWN);
-      return Boolean(saved && saved.trim().length > 0 && saved !== INITIAL_SESSION_STATE_MD);
-    } catch {
-      return false;
-    }
+    const env = initialLoadRef.current.envelope;
+    return Boolean(env && env.rawMarkdown && env.rawMarkdown.trim().length > 0 && env.rawMarkdown !== INITIAL_SESSION_STATE_MD);
   });
 
   // History stack for Undo / Redo in current session
   const [history, setHistory] = useState<SessionSnapshot[]>(() => {
-    try {
-      const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-      if (savedHistory) {
-        const parsed = JSON.parse(savedHistory);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.slice(-maxHistory).map((item: any) => ({
-            id: item.id,
-            timestamp: item.timestamp,
-            label: item.label,
-            rawMarkdown: item.rawMarkdown,
-            stateData: item.stateData || parseSessionStateMarkdown(item.rawMarkdown)
-          }));
-        }
-      }
-    } catch {
-      // Fallback
+    const env = initialLoadRef.current.envelope;
+    if (env && Array.isArray(env.history) && env.history.length > 0) {
+      return env.history.slice(-maxHistory).map(item => ({
+        id: item.id,
+        timestamp: item.timestamp,
+        label: item.label,
+        rawMarkdown: item.rawMarkdown,
+        stateData: parseSessionStateMarkdown(item.rawMarkdown)
+      }));
     }
     return [
       {
@@ -106,16 +162,14 @@ export function useSessionPersistence(
   });
 
   const [historyIndex, setHistoryIndex] = useState<number>(() => {
-    return history.length - 1;
+    return Math.max(0, history.length - 1);
   });
 
-  // Ref flags to prevent infinite loops when updating from undo/redo/restore
   const isInternalChangeRef = useRef<boolean>(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 1. Persist to localStorage whenever rawMarkdown or stateData changes
+  // 1. Persist to localStorage whenever rawMarkdown or stateData changes atomically via single envelope
   useEffect(() => {
-    // If change was triggered by undo/redo/restore, do not record duplicate history step
     if (isInternalChangeRef.current) {
       isInternalChangeRef.current = false;
       return;
@@ -130,32 +184,55 @@ export function useSessionPersistence(
     debounceTimerRef.current = setTimeout(() => {
       try {
         const now = new Date();
-        localStorage.setItem(STORAGE_KEY_MARKDOWN, rawMarkdown);
-        localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(stateData));
-        localStorage.setItem(STORAGE_KEY_LAST_SAVED, now.toISOString());
-        setLastSaved(now);
-        setIsSaved(true);
-        setHasStoredSession(true);
-
-        // Append to history stack if content changed from current position
         const currentSnapshot = history[historyIndex];
+        let nextHistory = history;
+        let nextIndex = historyIndex;
+
         if (!currentSnapshot || currentSnapshot.rawMarkdown !== rawMarkdown) {
           const updatedHistory = history.slice(0, historyIndex + 1);
           const newSnapshot: SessionSnapshot = {
-            id: 'snap-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+            id: 'snap-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
             timestamp: Date.now(),
             label: `Edit (${stateData.status?.activeTask || stateData.context?.projectName || 'Update'})`,
             rawMarkdown,
             stateData
           };
 
-          const trimmed = [...updatedHistory, newSnapshot].slice(-maxHistory);
-          setHistory(trimmed);
-          setHistoryIndex(trimmed.length - 1);
-          saveLightweightHistory(trimmed);
+          nextHistory = [...updatedHistory, newSnapshot].slice(-maxHistory);
+          nextIndex = nextHistory.length - 1;
+          setHistory(nextHistory);
+          setHistoryIndex(nextIndex);
         }
-      } catch (err) {
-        console.warn('[ZLCE Storage] Gagal menyimpan ke localStorage:', err);
+
+        const envelope: ZlceSessionEnvelope = {
+          schemaVersion: '3.3.0',
+          envelopeId: 'env-' + Date.now(),
+          updatedAt: now.toISOString(),
+          projectName: stateData.context?.projectName || 'Project',
+          rawMarkdown,
+          stateData,
+          history: nextHistory.map(({ id, timestamp, label, rawMarkdown: md }) => ({
+            id,
+            timestamp,
+            label,
+            rawMarkdown: md
+          }))
+        };
+
+        // Atomic write in a single setItem call
+        localStorage.setItem(STORAGE_KEY_ENVELOPE, JSON.stringify(envelope));
+        setLastSaved(now);
+        setIsSaved(true);
+        setStorageError(null);
+        setHasStoredSession(true);
+      } catch (err: any) {
+        console.error('[ZLCE Storage] Gagal menyimpan envelope atomik:', err);
+        setStorageError(
+          err?.name === 'QuotaExceededError'
+            ? 'Penyimpanan lokal penuh (Quota Exceeded). Silakan bersihkan riwayat atau unduh berkas SESSION_STATE.md.'
+            : 'Penyimpanan lokal gagal. Pastikan browser mengizinkan penyimpanan localStorage.'
+        );
+        setIsSaved(false);
       }
     }, debounceMs);
 
@@ -164,7 +241,7 @@ export function useSessionPersistence(
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [rawMarkdown, stateData, historyIndex, maxHistory, debounceMs]);
+  }, [rawMarkdown, stateData, history, historyIndex, maxHistory, debounceMs]);
 
   // Undo: Step back in history
   const undo = useCallback((): boolean => {
@@ -200,49 +277,35 @@ export function useSessionPersistence(
     return false;
   }, [historyIndex, history, setRawMarkdown, setStateData]);
 
-  // Restore: Load persisted rawMarkdown & stateData from localStorage
+  // Restore: Load persisted rawMarkdown & stateData from envelope
   const restoreFromStorage = useCallback((): boolean => {
     try {
-      const storedMd = localStorage.getItem(STORAGE_KEY_MARKDOWN);
-      const storedState = localStorage.getItem(STORAGE_KEY_STATE);
-
-      if (!storedMd) {
+      const { envelope, lastSaved: restoredTime } = loadEnvelopeOrMigrateLegacy();
+      if (!envelope || !envelope.rawMarkdown) {
         return false;
       }
 
-      let parsedState: ParsedSessionState;
-      if (storedState) {
-        try {
-          parsedState = JSON.parse(storedState);
-        } catch {
-          parsedState = parseSessionStateMarkdown(storedMd);
-        }
-      } else {
-        parsedState = parseSessionStateMarkdown(storedMd);
-      }
-
       isInternalChangeRef.current = true;
-      setRawMarkdown(storedMd);
-      setStateData(parsedState);
+      setRawMarkdown(envelope.rawMarkdown);
+      setStateData(envelope.stateData);
+      setLastSaved(restoredTime);
       setIsSaved(true);
+      setStorageError(null);
 
-      // Create a snapshot for this restore action
       const restoreSnap: SessionSnapshot = {
         id: 'snap-restore-' + Date.now(),
         timestamp: Date.now(),
-        label: 'Restored from LocalStorage',
-        rawMarkdown: storedMd,
-        stateData: parsedState
+        label: 'Restored from Storage Envelope',
+        rawMarkdown: envelope.rawMarkdown,
+        stateData: envelope.stateData
       };
 
       const next = [...history, restoreSnap].slice(-maxHistory);
       setHistory(next);
       setHistoryIndex(next.length - 1);
-      saveLightweightHistory(next);
-
       return true;
     } catch (err) {
-      console.error('[ZLCE Storage] Gagal memulihkan sesi dari localStorage:', err);
+      console.error('[ZLCE Storage] Gagal memulihkan envelope:', err);
       return false;
     }
   }, [history, maxHistory, setRawMarkdown, setStateData]);
@@ -268,6 +331,7 @@ export function useSessionPersistence(
     setRawMarkdown(INITIAL_SESSION_STATE_MD);
     setStateData(defaultData);
 
+    const now = new Date();
     const resetSnap: SessionSnapshot = {
       id: 'snap-reset-' + Date.now(),
       timestamp: Date.now(),
@@ -279,59 +343,62 @@ export function useSessionPersistence(
     const next = [...history, resetSnap].slice(-maxHistory);
     setHistory(next);
     setHistoryIndex(next.length - 1);
-    saveLightweightHistory(next);
 
     try {
-      localStorage.setItem(STORAGE_KEY_MARKDOWN, INITIAL_SESSION_STATE_MD);
-      localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(defaultData));
-      localStorage.setItem(STORAGE_KEY_LAST_SAVED, new Date().toISOString());
-      setLastSaved(new Date());
+      const envelope: ZlceSessionEnvelope = {
+        schemaVersion: '3.3.0',
+        envelopeId: 'reset-' + Date.now(),
+        updatedAt: now.toISOString(),
+        projectName: 'Default Project',
+        rawMarkdown: INITIAL_SESSION_STATE_MD,
+        stateData: defaultData,
+        history: next.map(({ id, timestamp, label, rawMarkdown: md }) => ({ id, timestamp, label, rawMarkdown: md }))
+      };
+      localStorage.setItem(STORAGE_KEY_ENVELOPE, JSON.stringify(envelope));
+      setLastSaved(now);
       setIsSaved(true);
+      setStorageError(null);
     } catch {
       // ignore
     }
-  }, [maxHistory, setRawMarkdown, setStateData]);
+  }, [history, maxHistory, setRawMarkdown, setStateData]);
 
-  // Manual snapshot checkpoint
-  const createManualSnapshot = useCallback((label?: string) => {
-    const newSnapshot: SessionSnapshot = {
+  // Create manual snapshot
+  const createManualSnapshot = useCallback((label: string = 'Manual Checkpoint') => {
+    const manualSnap: SessionSnapshot = {
       id: 'snap-manual-' + Date.now(),
       timestamp: Date.now(),
-      label: label || `Manual Checkpoint (${new Date().toLocaleTimeString('id-ID')})`,
+      label: `${label} (${stateData.status?.activeTask || 'State'})`,
       rawMarkdown,
       stateData
     };
 
-    setHistory(prev => {
-      const next = [...prev, newSnapshot].slice(-maxHistory);
-      setHistoryIndex(next.length - 1);
-      saveLightweightHistory(next);
-      return next;
-    });
-  }, [rawMarkdown, stateData, maxHistory]);
+    const next = [...history.slice(0, historyIndex + 1), manualSnap].slice(-maxHistory);
+    setHistory(next);
+    setHistoryIndex(next.length - 1);
+  }, [history, historyIndex, maxHistory, rawMarkdown, stateData]);
 
   // Clear storage
   const clearStorage = useCallback(() => {
     try {
-      localStorage.removeItem(STORAGE_KEY_MARKDOWN);
-      localStorage.removeItem(STORAGE_KEY_STATE);
-      localStorage.removeItem(STORAGE_KEY_LAST_SAVED);
-      localStorage.removeItem(STORAGE_KEY_HISTORY);
+      localStorage.removeItem(STORAGE_KEY_ENVELOPE);
+      localStorage.removeItem(LEGACY_STORAGE_KEY_MARKDOWN);
+      localStorage.removeItem(LEGACY_STORAGE_KEY_STATE);
+      localStorage.removeItem(LEGACY_STORAGE_KEY_LAST_SAVED);
+      localStorage.removeItem(LEGACY_STORAGE_KEY_HISTORY);
       setHasStoredSession(false);
-      setLastSaved(null);
+      setStorageError(null);
     } catch {
       // ignore
     }
   }, []);
 
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
-
   return {
     lastSaved,
     isSaved,
-    canUndo,
-    canRedo,
+    storageError,
+    canUndo: historyIndex > 0,
+    canRedo: historyIndex < history.length - 1,
     undo,
     redo,
     restoreFromStorage,

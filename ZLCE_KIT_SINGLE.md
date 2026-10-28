@@ -1,6 +1,6 @@
-# ZLCE KIT (SATU BERKAS) v3.2.2
+# ZLCE KIT (SATU BERKAS) v3.3.0
 
-Berkas ini adalah bundel tunggal (*monolithic bundle*) resmi Zero-Loss Context Engineering (ZLCE) v3.2.2.
+Berkas ini adalah bundel tunggal (*monolithic bundle*) resmi Zero-Loss Context Engineering (ZLCE) v3.3.0.
 Tujuan Utama: Memungkinkan pemakaian ZLCE pada AI berbasis chat/web prompt tunggal (seperti ChatGPT, Claude Web, atau IDE prompt) yang tidak mendukung upload direktori folder sekaligus.
 
 Setiap berkas di dalamnya dibatasi penanda:
@@ -8,15 +8,16 @@ Setiap berkas di dalamnya dibatasi penanda:
 Perlakukan tiap bagian sebagai berkas terpisah dengan path tersebut.
 
 💡 PRINSIP ARSITEKTUR DISTRIBUSI TEMPLATE:
-Kit ZLCE sengaja didistribusikan dalam 3 wujud fungsional:
+Kit ZLCE sengaja didistribusikan dari satu sumber kebenaran kanonik (`templates/`):
 1. `templates/*.md`: Berkas fisik terpisah untuk repositori Git & IDE AI modular (Cursor, Windsurf, VS Code).
-2. `ZLCE_KIT_SINGLE.md`: Bundel tunggal mandiri ini untuk AI berbasis prompt tunggal tanpa multi-upload.
+2. `ZLCE_KIT_SINGLE.md`: Bundel tunggal mandiri ini yang di-generate otomatis oleh `scripts/zlce/pack-kit.py`.
 3. `src/data/templates.ts`: Runtime cache internal untuk aplikasi web ZLCE Studio di sisi browser.
 
 DAFTAR BERKAS:
 - LANDING_PROMPT.md
 - HANDOVER_PROMPT.md
 - templates/AI_WORKFLOW.template.md
+- templates/AI_WORKFLOW_CORE.template.md
 - templates/BLUEPRINT.template.md
 - templates/ARCHITECTURE.template.md
 - templates/DATA_MODEL.template.md
@@ -33,9 +34,9 @@ DAFTAR BERKAS:
 Hanya untuk **awal proyek** (atau restrukturisasi). Pindah sesi/AI di tengah proyek, termasuk sesi terputus: gunakan `HANDOVER_PROMPT.md`.
 
 ## CARA PAKAI
-1. Buka sesi AI. **Lampirkan** seluruh `templates/` (+ profil domain bila ada) dan, bila AI mampu menyimpan berkas, `scripts/`. Tanpa dukungan lampiran: tempel template, atau andalkan Skeleton Fallback (Bagian 6).
+1. Buka sesi AI. **Lampirkan** seluruh `templates/` (+ profil domain bila ada) dan, bila AI mampu menyimpan/menjalankan berkas, folder `scripts/` (opsional: bila terminal/skrip tidak tersedia, gunakan validasi visual di ZLCE Studio atau pemeriksaan logis manual). Tanpa dukungan lampiran: tempel template, atau andalkan Skeleton Fallback (Bagian 6).
 2. Isi semua `[PLACEHOLDER]` di Bagian 1, salin seluruh blok, tempel ke AI.
-3. Simpan setiap berkas yang dihasilkan ke repositori. Salin `scripts/` ke `scripts/zlce/` di repositori.
+3. Simpan setiap berkas yang dihasilkan ke repositori. Bila menggunakan skrip pembantu, salin `scripts/` ke `scripts/zlce/` di repositori.
 
 ---
 
@@ -48,9 +49,9 @@ Metodologi: Zero-Loss Context Engineering (ZLCE): berkas kontrol, task atomik, b
 ## 1. PARAMETER PROYEK (INPUT PENGGUNA)
 - Nama Proyek: [NAMA]
 - Aksi: [BARU | RESTRUKTURISASI proyek existing]
-- MODE: [FULL | LITE]
-  - FULL: 10 berkas kontrol (Bagian 3).
-  - LITE: `BLUEPRINT.md`, `TASKS.md`, `SESSION_STATE.md`, `HANDOVER.md`; aturan global Bagian 2 tetap berlaku (proyek < ~15 task). Model data di `BLUEPRINT.md` bagian 7, strategi uji di bagian 8; `Docs Impact` hanya merujuk dokumen yang ada; `Test Case` merujuk nama test, bukan ID `TC-xx`.
+- MODE: [LITE (Rekomendasi Default) | FULL]
+  - LITE (Default, proyek < ~15 task / 1-2 modul): 4 berkas kontrol (`BLUEPRINT.md`, `TASKS.md`, `SESSION_STATE.md`, `HANDOVER.md`); aturan global Bagian 2 tetap berlaku penuh. Model data di `BLUEPRINT.md` bagian 7, strategi uji di bagian 8; `Docs Impact` hanya merujuk dokumen yang ada; `Test Case` merujuk nama test, bukan ID `TC-xx`.
+  - FULL (Proyek besar > 15 task / multi-service): 10 berkas kontrol lengkap bertahap melalui 4 Gerbang Persetujuan (Bagian 3).
 - Domain / Industri: [CONTOH: Logistik / Rental Kendaraan / FinTech]
 - Profil Domain (opsional): [booking | none]
 - Sasaran: [CONTOH: Web App, API, Admin Dashboard]
@@ -68,7 +69,9 @@ Metodologi: Zero-Loss Context Engineering (ZLCE): berkas kontrol, task atomik, b
 
 R1. **Sumber Kebenaran Tunggal:** status task hanya di `SESSION_STATE.md`. Berkas lain menunjuk, tidak menduplikasi.
 R2. **Pembacaan Bertingkat:** Tier 0 (tiap sesi): `SESSION_STATE.md` + entri task aktif di `TASKS.md`. Tier 1 (per task): `Docs Terkait` + kode yang diubah. Tier 2: sisanya bila perlu.
-R3. **Anti-Halusinasi:** informasi di luar berkas/lampiran = tidak diketahui. Catat `ASM-xx`/`Q-xx` di `SESSION_STATE.md` dan tanyakan. Verifikasi versi/API library sebelum dipakai. Dilarang mengarang output perintah, hasil test, atau isi berkas yang belum dibaca. Penomoran `ASM`/`Q`: satu urutan bersama, ID berikutnya = nomor tertinggi di bagian 4 + 1, dilarang memakai ulang. Dilarang mengarang jam: jam HANYA boleh berasal persis dari pesan pengguna, sistem, atau snapshot. Tanpa sumber jam baru, WAJIB tulis tanggal saja dan 'jam: ?' (contoh: '2026-10-14 jam: ?' atau gunakan jam eksis dari fixture bila mempertahankan state). DILARANG mengekstrapolasi/mengarang jam sintetis (seperti +5 atau +10 menit).
+R3. **Anti-Halusinasi:** informasi di luar berkas/lampiran = tidak diketahui. Dilarang mengarang output perintah, hasil test, atau isi berkas yang belum dibaca. Catat hal yang belum jelas sebagai `ASM-xx`/`Q-xx` di `SESSION_STATE.md` bagian 4 dan tanyakan kepada pengguna. Verifikasi versi/API pustaka sebelum dipakai.
+R3a. **Penomoran Bersama ASM & Q:** penomoran `ASM` dan `Q` dalam satu urutan bersama; ID berikutnya = nomor angka tertinggi di bagian 4 + 1. Dilarang memakai ulang ID yang sudah selesai/dijawab.
+R3b. **Aturan Jam Anti-Ekstrapolasi:** jam HANYA boleh berasal persis dari pesan pengguna, sistem, atau snapshot. Tanpa sumber jam baru yang eksplisit, WAJIB tulis tanggal saja dan 'jam: ?' (contoh: '2026-10-14 jam: ?' atau gunakan jam eksis dari fixture bila mempertahankan state). DILARANG mengekstrapolasi/mengarang jam sintetis (seperti +5 atau +10 menit).
 R4. **Single Task:** satu task `IN_PROGRESS` pada satu waktu.
 R5. **Verifikasi Berbukti:** `DONE` hanya bila semua Acceptance Criteria terpenuhi, kolom Bukti Verifikasi terisi (output perintah/log test/pengamatan konkret), dan `Disetujui: ya`. AI tanpa eksekusi: berikan perintah persis, pengguna menempel output, status tetap `IN_PROGRESS` sampai bukti masuk.
 R6. **Sinkronisasi Dokumen:** tiap task mendeklarasikan `Docs Impact`; dokumen terdampak diperbarui dalam task yang sama sebelum `DONE`.
@@ -77,7 +80,7 @@ R8. **Keamanan:** input tervalidasi tipe ketat; output di-escape sesuai konteks;
 R9. **Gaya:** dokumentasi teknis murni, ringkas, bullet/tabel, tanpa narasi.
 R10. **Template Tidak Ada:** jangan menebak struktur. Minta lampiran atau gunakan Skeleton Fallback (Bagian 6) dan nyatakan penggunaannya.
 R11. **Enum Status Tunggal:** `PENDING | READY | IN_PROGRESS | BLOCKED | DONE`.
-R12. **Checkpoint & WAL (anti sesi terputus):** sebelum langkah multi-berkas, isi WAL (`SESSION_STATE.md` bagian 3); setelah langkah utuh, commit `wip(<lingkup>): <langkah> [TASK-XXX]` dan perbarui WAL. Sejak `SESSION_STATE.md` ada (Gerbang 4) dan tanpa akses tulis berkas: cetak CHECKPOINT BLOCK (format di `AI_WORKFLOW.md` bagian 8) di akhir setiap respons yang mengubah state. Sebelum Gerbang 4 tidak ada state dan tidak ada checkpoint. Jalankan `scripts/zlce/zlce-check.py` setelah memperbarui state dan sebelum `DONE`.
+R12. **Checkpoint & WAL (anti sesi terputus):** sebelum langkah multi-berkas, isi WAL (`SESSION_STATE.md` bagian 3); setelah langkah utuh, commit `wip(<lingkup>): <langkah> [TASK-XXX]` dan perbarui WAL. Sejak `SESSION_STATE.md` ada (Gerbang 4) dan tanpa akses tulis berkas: cetak CHECKPOINT BLOCK (format di `AI_WORKFLOW.md` bagian 8) di akhir setiap respons yang mengubah state. Sebelum Gerbang 4 tidak ada state dan tidak ada checkpoint. Jalankan `scripts/zlce/zlce-check.py` (bila skrip tersedia; bila tidak, lakukan validasi di ZLCE Studio atau pemeriksaan logis manual) setelah memperbarui state dan sebelum `DONE`.
 R13. **Pemulihan:** sesi baru yang menemukan WAL berisi task menjalankan prosedur RECOVERY (`AI_WORKFLOW.md` bagian 9, `HANDOVER.md`). Dilarang membatalkan perubahan tanpa persetujuan.
 
 ---
@@ -91,8 +94,7 @@ Setelah tiap gerbang, BERHENTI dan tunggu persetujuan eksplisit. Jangan membuat 
 - **Gerbang 4:** `AI_WORKFLOW.md`, `CHECKLISTS.md`, `SESSION_STATE.md`, `CHANGELOG.md`, `HANDOVER.md`
   - `HANDOVER.md`: salinan VERBATIM blok prompt dari `HANDOVER_PROMPT.md` (jika tidak terlampir, minta pengguna menyalinnya; jangan menulis ulang).
   - `scripts/zlce/`: minta pengguna menyalin dari kit; jangan menulis ulang skrip.
-  - `SESSION_STATE.md` awal: semua field terisi, matriks sesuai `TASKS.md`, WAL kosong (`-`).
-LITE: Gerbang 1, lalu `TASKS.md` + `SESSION_STATE.md` + `HANDOVER.md`.
+LITE: Gerbang 1 (mencakup Model Data & Uji ringkas di Bagian 7–8 BLUEPRINT.md), lalu melompat langsung ke Gerbang 3 (TASKS.md), disusul Gerbang 4 (SESSION_STATE.md, AI_WORKFLOW_CORE.md, HANDOVER.md). Gerbang 2 dilewati.
 
 Batas output: bila respons akan terpotong, selesaikan satu berkas utuh per pesan dan sebutkan berkas berikutnya.
 
@@ -136,8 +138,8 @@ Prompt ini tetap: tidak diubah antar-sesi, antar-AI, antar-proyek. Semua status 
 Salin juga isi blok ini ke repositori sebagai `HANDOVER.md` (verbatim) agar ikut terbawa.
 
 ## CARA PAKAI
-1. Buka sesi/AI baru. Lampirkan: `SESSION_STATE.md`, `TASKS.md`, `AI_WORKFLOW.md`. Tambahkan berkas lain bila diminta.
-2. Bila sesi sebelumnya putus: jalankan `bash scripts/zlce/zlce-snapshot.sh --diff` di root proyek dan lampirkan outputnya. Bila AI sebelumnya sempat mencetak CHECKPOINT BLOCK yang belum Anda simpan, simpan dulu ke `SESSION_STATE.md`.
+1. Buka sesi/AI baru. Lampirkan: `SESSION_STATE.md`, `TASKS.md`, `AI_WORKFLOW.md` (atau di ZLCE Studio, klik tombol **'Salin Bundel Handover (All-in-One)'** pada tab Recovery untuk menyalin prompt, state aktif, dan snapshot git sekaligus).
+2. Bila sesi sebelumnya putus: jalankan `bash scripts/zlce/zlce-snapshot.sh --diff` (opsional: atau gunakan generator snapshot di tab Recovery Studio) dan lampirkan outputnya. Bila AI sebelumnya sempat mencetak CHECKPOINT BLOCK yang belum Anda simpan, simpan dulu ke `SESSION_STATE.md`.
 3. Tempel blok di bawah apa adanya. Isi slot `[REVISI]` hanya bila ada revisi.
 
 ---
@@ -161,11 +163,11 @@ LANGKAH 1 - MODE NORMAL
 LANGKAH 2 - MODE RECOVERY (sesi putus)
 1. Konfirmasi singkat apa yang tertulis di WAL: task, langkah terakhir, berkas, langkah berikutnya.
 2. Butuh data repositori: `git status --short`, `git log -5`, `git diff --stat` (atau RECOVERY SNAPSHOT). Belum ada = MINTA dan berhenti.
-3. Klasifikasikan dan laporkan ke pengguna sebelum bertindak:
-   - A: working tree bersih, tidak ada commit baru -> ulangi dari `Langkah Berikutnya` WAL.
+3. Klasifikasikan dan laporkan ke pengguna sebelum bertindak (Evaluasi dengan urutan prioritas ketat: D > C > B > A):
+   - D (Prioritas Tertinggi): perubahan pada berkas di luar WAL -> TAHAN TINDAKAN, tandai task BLOCKED, laporkan dan tanyakan ke pengguna; jangan disentuh sebelum disetujui.
+   - C: ada commit baru di `git log <Base Commit>..HEAD` yang belum tercermin di state -> perbarui `SESSION_STATE.md`, verifikasi ulang.
    - B: perubahan tak ter-commit pada berkas WAL -> baca diff, nilai kelengkapan terhadap Acceptance Criteria, lanjutkan. Dilarang `reset`/`checkout`/menghapus perubahan tanpa persetujuan pengguna.
-   - C: ada commit bertanda task yang belum tercermin di state -> perbarui `SESSION_STATE.md`, verifikasi ulang.
-   - D: perubahan pada berkas di luar WAL -> laporkan dan tanyakan; jangan disentuh.
+   - A: working tree bersih dan HEAD == Base Commit (tidak ada commit baru) -> ulangi dari `Langkah Berikutnya` WAL.
 4. Dalam RECOVERY, `DONE` hanya dengan bukti verifikasi BARU. Klaim sesi lama bukan bukti.
 5. Catat di log audit: `RECOVERY: kasus [A-D], langkah dilanjutkan [..]`. Tulis ulang WAL sesuai kondisi aktual.
 6. Informasi yang tidak ada di berkas atau repositori = hilang. Tanyakan ke pengguna; jangan direka.
@@ -315,16 +317,17 @@ Prinsip: sesi bisa putus kapan saja (kuota, timeout, tab tertutup). Yang selamat
 
 1. **WAL (tulis-dahulu):** sebelum langkah yang menyentuh > 1 berkas atau > ~30 menit kerja, isi `SESSION_STATE.md` bagian 3: Task, Langkah Sedang Dikerjakan, Berkas Direncanakan/Disentuh, Langkah Berikutnya (persis), Perintah Verifikasi. Sesudah langkah selesai, perbarui `Sudah Dilakukan` dan `Langkah Berikutnya`. Kosongkan saat task `DONE`.
 2. **Commit titik-simpan:** setelah tiap langkah WAL yang menghasilkan kode utuh (build/lint tidak rusak), buat commit `wip(...)` di branch fitur. Dilarang meninggalkan perubahan besar tanpa commit antar-langkah.
-3. **Checkpoint Block (AI tanpa akses tulis berkas):** berlaku sejak `SESSION_STATE.md` ada (setelah Gerbang 4); sebelum itu tidak ada state dan pengguna menyimpan tiap berkas gerbang yang disetujui. Di akhir SETIAP respons yang mengubah status, menyelesaikan langkah WAL, atau menambah keputusan, AI mencetak blok berikut persis dalam format `SESSION_STATE.md` agar pengguna menempel/menimpa:
+3. **Checkpoint Block (AI tanpa akses tulis berkas):** berlaku sejak `SESSION_STATE.md` ada (setelah Gerbang 4); sebelum itu tidak ada state dan pengguna menyimpan tiap berkas gerbang yang disetujui. Di akhir SETIAP respons yang mengubah status, menyelesaikan langkah WAL, atau menambah keputusan, AI mencetak blok kanonik berikut:
 
-```text
-=== ZLCE CHECKPOINT [YYYY-MM-DD (HH:MM TZ | jam: ?)] ===
-## 1. STATUS AKTIF        (salinan lengkap bagian 1)
-## 2. MATRIKS TASK        (hanya baris yang berubah)
-## 3. WORK IN PROGRESS (WAL)  (salinan lengkap bagian 3)
-## 6. CATATAN SERAH TERIMA (hanya bila berubah)
-## 7. LOG AUDIT           (satu baris baru)
-=== END CHECKPOINT ===
+```zlce-checkpoint
+TASK: <TASK-ID>
+STATUS: <IN_PROGRESS | BLOCKED | DONE>
+BASE_COMMIT: <git-sha-7>
+STEP_COMPLETED: <ringkasan langkah yang tuntas>
+EVIDENCE: <output perintah uji konkret / exit code>
+NEXT_STEP: <langkah persis berikutnya>
+VERIFICATION_CMD: <perintah shell verifikasi>
+TIMESTAMP: <YYYY-MM-DD (HH:MM TZ | jam: ?)>
 ```
 
    ATURAN KERAS TIMESTAMP: Jika jam eksplisit tidak tersedia di pesan pengguna atau snapshot repositori, WAJIB menulis tanggal saja dan 'jam: ?' (contoh: [2026-10-14 jam: ?]). DILARANG mengarang jam (seperti +5 atau +10 menit).
@@ -355,10 +358,64 @@ Dipicu bila `SESSION_STATE.md` bagian 3 (WAL) berisi task, atau pengguna menyata
 
 ## 10. MODE LITE
 
-Berkas kontrol: `BLUEPRINT.md`, `TASKS.md`, `SESSION_STATE.md`, `HANDOVER.md`. Aturan lain tetap berlaku.
+Berkas kontrol: `BLUEPRINT.md`, `TASKS.md`, `SESSION_STATE.md`, `AI_WORKFLOW_CORE.md`, `HANDOVER.md`. Aturan lain tetap berlaku.
 1. Model data ditulis di `BLUEPRINT.md` bagian 7; strategi uji di bagian 8. `DATA_MODEL.md` dan `TESTING.md` tidak dibuat.
 2. `Docs Impact` hanya boleh merujuk dokumen yang ada (di LITE: `BLUEPRINT`, `TASKS`).
 3. `Test Case` pada task merujuk nama atau path test (mis. `tests/test_migrations.py::test_down`), bukan ID `TC-xx`.
+<<<END FILE>>>
+
+<<<FILE: templates/AI_WORKFLOW_CORE.template.md>>>
+# TATA KELOLA AI & ALUR KERJA RINGKAS (MODE LITE): [NAMA_PROYEK]
+
+Berkas otoritatif aturan kerja, enum status, triase, dan checkpoint untuk proyek Mode LITE.
+
+---
+
+## 1. KONVENSI & ENUM STATUS
+1. Format Waktu: Wajib format nyata (ISO 8601) atau fallback Aturan Jam X1: `YYYY-MM-DD jam: ?`. Dilarang mengarang/halusinasi jam.
+2. Enum Status Tunggal:
+   `PENDING | READY | IN_PROGRESS | BLOCKED | DONE`
+   - `PENDING`: Menunggu dependensi selesai.
+   - `READY`: Semua dependensi DONE, siap dikerjakan.
+   - `IN_PROGRESS`: Sedang dikerjakan (**MAKSIMAL 1 TASK**).
+   - `BLOCKED`: Terhenti; alasan wajib dicatat di WAL/Catatan.
+   - `DONE`: Semua AC terpenuhi + Bukti Verifikasi riil + Disetujui: ya.
+
+---
+
+## 2. ATURAN KERJA UTAMA (QUALITY GATES)
+1. **[R4 - Single Task]:** Hanya boleh ada MAKSIMAL SATU task berstatus `IN_PROGRESS` pada satu waktu.
+2. **[R5 - Quality Gate Bukti Verifikasi]:** Status task dilarang diubah ke `DONE` tanpa bukti nyata (output terminal, log pengujian, atau commit SHA terverifikasi).
+3. **[R7 - Triase Revisi]:**
+   - **Level S (<= 1 berkas, <= 20 baris, tanpa perubahan skema/kontrak/AC):** Eksekusi langsung di task aktif, commit `[MINOR]`.
+   - **Level M Dependen (Terkait task aktif):** Scope change pada task aktif. Ubah AC dan minta persetujuan pengguna. Dilarang preempt.
+   - **Level M Independen (Fitur baru):** Daftarkan sebagai task baru berstatus `PENDING` di antrean matriks.
+4. **[X1 - Anti-Ekstrapolasi Waktu]:** Gunakan fallback `'YYYY-MM-DD jam: ?'` jika jam waktu nyata tidak diketahui pasti.
+
+---
+
+## 3. CHECKPOINT BLOCK KANONIK (AI TANPA WRITE-ACCESS)
+Di akhir setiap respons yang mengubah status kerja atau menyelesaikan langkah WAL, cetak blok kanonik berikut:
+
+```zlce-checkpoint
+TASK: <TASK-ID>
+STATUS: <IN_PROGRESS | BLOCKED | DONE>
+BASE_COMMIT: <git-sha-7>
+STEP_COMPLETED: <ringkasan langkah yang tuntas>
+EVIDENCE: <output perintah uji konkret / exit code>
+NEXT_STEP: <langkah persis berikutnya>
+VERIFICATION_CMD: <perintah shell verifikasi>
+TIMESTAMP: <YYYY-MM-DD (HH:MM TZ | jam: ?)>
+```
+
+---
+
+## 4. PROTOKOL PEMULIHAN SESI TERPUTUS (RECOVERY)
+Hierarki evaluasi kondisi saat recovery: **D > C > B > A**
+- **Kasus D:** Ada perubahan di luar WAL -> Tahan tindakan, tandai task `BLOCKED`, minta konfirmasi manusia.
+- **Kasus C:** Ada commit baru di git yang belum tercatat -> Selaraskan `SESSION_STATE.md` dengan commit.
+- **Kasus B:** Ada uncommitted diff yang cocok dengan berkas WAL -> Nilai AC, jalankan verifikasi, commit jika lolos.
+- **Kasus A:** Working tree bersih dan `HEAD == Base Commit` -> Lanjutkan langkah WAL yang belum tersimpan.
 <<<END FILE>>>
 
 <<<FILE: templates/BLUEPRINT.template.md>>>
@@ -654,12 +711,19 @@ Bukti Verifikasi: ringkasan + lokasi bukti (mis. "lint 0 error, 12/12 test pass;
 Catatan tulis-dahulu: isi SEBELUM memulai langkah multi-berkas, perbarui SESUDAH langkah selesai. Kosongkan (semua `-`) saat task `DONE`.
 
 * **Task:** -
+* **Base Commit:** -
+* **Branch:** -
 * **Langkah Sedang Dikerjakan:** -
 * **Berkas Direncanakan/Disentuh:** -
 * **Sudah Dilakukan:** -
 * **Langkah Berikutnya (persis):** -
 * **Perintah Verifikasi:** -
 * **Diperbarui:** -
+
+### WAL_STACK (Task Dijeda akibat Preempt R7)
+| Stack ID | Task ID | Base Commit | Langkah Terakhir | Disimpan Pada |
+| :--- | :--- | :--- | :--- | :--- |
+| (kosong) | | | | |
 
 ---
 
