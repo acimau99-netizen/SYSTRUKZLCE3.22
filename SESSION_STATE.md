@@ -20,7 +20,7 @@ Sumber kebenaran tunggal status task dan titik pemulihan sesi (Zero-Loss Context
 * **Cabang Git:** `main`
 * **Task Terakhir DONE:** `TASK-003`
 * **Task Aktif:** `TASK-004`
-* **Status Task Aktif:** READY
+* **Status Task Aktif:** IN_PROGRESS
 * **Task Berikutnya:** `TASK-004`
 
 ---
@@ -32,21 +32,21 @@ Sumber kebenaran tunggal status task dan titik pemulihan sesi (Zero-Loss Context
 | `TASK-001` | Inisialisasi Arsitektur & Dokumen Kontrol ZLCE Studio | - | DONE | Build & lint lolos 0 error, template kit terpasang | ya |
 | `TASK-002` | Implementasi Engine Validator, Parser Markdown & Token Gauge | TASK-001 | DONE | python3 tests/test_parity.py (3/3 pass, exit 0) | ya |
 | `TASK-003` | UI Studio, Tab Recovery, Wizard Mode, & Automated Test Parity | TASK-002 | DONE | npm test (suite parity + type-check exit 0), vite build exit 0 | ya |
-| `TASK-004` | Integrasi Workspace & Penguatan Ekosistem | TASK-003 | READY | - | - |
+| `TASK-004` | Integrasi Workspace & Penguatan Ekosistem | TASK-003 | IN_PROGRESS | - | - |
 
 ---
 
 ## 3. WORK IN PROGRESS (WAL)
 
-* **Task:** -
-* **Base Commit:** -
-* **Branch:** -
-* **Langkah Sedang Dikerjakan:** -
-* **Berkas Direncanakan/Disentuh:** -
-* **Sudah Dilakukan:** -
-* **Langkah Berikutnya (persis):** -
-* **Perintah Verifikasi:** -
-* **Diperbarui:** -
+* **Task:** TASK-004
+* **Base Commit:** 474c1aa
+* **Branch:** main
+* **Langkah Sedang Dikerjakan:** Membangun modul utilitas ekspor/impor workspace (src/utils/exportImport.ts), modal workspace (src/components/SettingsModal.tsx), dan pengujian unit (tests/test_export.ts)
+* **Berkas Direncanakan/Disentuh:** src/utils/exportImport.ts, src/components/SettingsModal.tsx, src/components/Header.tsx, src/App.tsx, tests/test_export.ts, package.json, SESSION_STATE.md
+* **Sudah Dilakukan:** Analisis spesifikasi TASK-004, implementasi exportImport.ts, SettingsModal.tsx, integrasi Header, dan penulisan test_export.ts
+* **Langkah Berikutnya (persis):** Jalankan pengujian verifikasi penuh npm test dan konfirmasi kelulusan TASK-004
+* **Perintah Verifikasi:** npm test
+* **Diperbarui:** 2026-11-01 jam: ?
 
 ### WAL_STACK (Task Dijeda akibat Preempt R7)
 | Stack ID | Task ID | Base Commit | Langkah Terakhir | Disimpan Pada |

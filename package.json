@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "python3 tests/test_parity.py && tsc --noEmit"
+    "test": "npx tsx tests/test_export.ts && python3 tests/test_parity.py && tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

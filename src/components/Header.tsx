@@ -13,7 +13,8 @@ import {
   Maximize2,
   Undo2,
   Redo2,
-  Save
+  Save,
+  Database
 } from 'lucide-react';
 import { TabType, ValidationResult } from '../types/zlce';
 import { TokenUsageGauge } from './TokenUsageGauge';
@@ -25,6 +26,7 @@ interface HeaderProps {
   onRunLinter: () => void;
   rawMarkdown?: string;
   onToggleFullscreen?: () => void;
+  onOpenWorkspaceSettings?: () => void;
   persistence?: {
     canUndo: boolean;
     canRedo: boolean;
@@ -46,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRunLinter,
   rawMarkdown = '',
   onToggleFullscreen,
+  onOpenWorkspaceSettings,
   persistence
 }) => {
   return (
@@ -61,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-lg text-white tracking-tight">ZLCE Studio</span>
                 <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  v3.2.2
+                  v3.3.0
                 </span>
                 <span className="hidden md:inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   <Clock className="w-3 h-3" /> Rule X1 Active
@@ -92,6 +95,18 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-semibold hidden sm:inline">{validation.valid ? 'STATE: OK' : 'STATE: GAGAL'}</span>
               <span className="text-slate-400">({validation.errorsCount} err)</span>
             </button>
+
+            {/* Workspace & Ecosystem Button (TASK-004) */}
+            {onOpenWorkspaceSettings && (
+              <button
+                onClick={onOpenWorkspaceSettings}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono bg-slate-950/80 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900 text-cyan-300 transition active:scale-95"
+                title="Kelola Workspace, Ekspor/Impor Envelope JSON & Multi-Proyek"
+              >
+                <Database className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="hidden lg:inline text-[11px]">Workspace</span>
+              </button>
+            )}
 
             {/* Persistence & Undo/Restore Controls */}
             {persistence && (

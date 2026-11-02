@@ -15,6 +15,7 @@ import { TemplatesTab } from './components/TemplatesTab';
 import { TutorialTab } from './components/TutorialTab';
 import { PersistentSidebar } from './components/PersistentSidebar';
 import { FullscreenEditorModal } from './components/FullscreenEditorModal';
+import { SettingsModal } from './components/SettingsModal';
 import { useSessionPersistence, SessionSnapshot, UseSessionPersistenceReturn } from './hooks/useSessionPersistence';
 import { ShieldCheck, Info, RotateCcw, Undo2, Redo2, Check } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export type { SessionSnapshot, UseSessionPersistenceReturn };
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('session');
   const [isFullscreenEditorOpen, setIsFullscreenEditorOpen] = useState<boolean>(false);
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState<boolean>(false);
 
   // Initialize rawMarkdown from localStorage if present
   const [rawMarkdown, setRawMarkdown] = useState<string>(() => {
@@ -137,6 +139,7 @@ export const App: React.FC = () => {
         onRunLinter={handleRunLinter}
         rawMarkdown={rawMarkdown}
         onToggleFullscreen={handleToggleFullscreen}
+        onOpenWorkspaceSettings={() => setIsWorkspaceModalOpen(true)}
         persistence={persistence}
       />
 
@@ -196,11 +199,23 @@ export const App: React.FC = () => {
         />
       )}
 
+      {/* Workspace Management & Ecosystem Modal (TASK-004) */}
+      <SettingsModal
+        isOpen={isWorkspaceModalOpen}
+        onClose={() => setIsWorkspaceModalOpen(false)}
+        rawMarkdown={rawMarkdown}
+        stateData={stateData}
+        onUpdateMarkdown={handleUpdateMarkdown}
+        onUpdateStateData={handleUpdateStateData}
+        persistence={persistence}
+        onRunLinter={handleRunLinter}
+      />
+
       {/* Footer info bar */}
       <footer className="border-t border-slate-800/80 bg-slate-950/90 py-4 px-4 sm:px-8 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-cyan-400" />
-          <span>Zero-Loss Context Engineering (ZLCE) Kit v3.2.2 • Single Source of Truth</span>
+          <span>Zero-Loss Context Engineering (ZLCE) Kit v3.3.0 • Single Source of Truth</span>
         </div>
         <div className="flex items-center gap-4 text-[11px] font-mono">
           <span>Anti-Ekstrapolasi Jam: <strong className="text-emerald-400">Fix X1 Aktif</strong></span>
