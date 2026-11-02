@@ -56,6 +56,15 @@ def main():
     assert code == 0, f"SESSION_STATE.example.md failed in Python checker:\n{out}"
     print("  [PASS] Test 3: examples/SESSION_STATE.example.md lulus di Python (exit 0)")
 
+    # Test 4: Root 4-task SESSION_STATE.md
+    root_state = os.path.join(ROOT, "SESSION_STATE.md")
+    code, out = run_py_checker(root_state)
+    assert code == 0, f"Root SESSION_STATE.md failed in Python checker:\n{out}"
+    ts_res, ts_err = run_ts_checker(root_state)
+    assert ts_res and ts_res["valid"] is True, f"Root SESSION_STATE.md failed in TS validator:\n{ts_err}"
+    assert ts_res["errorsCount"] == 0, f"Root SESSION_STATE.md has {ts_res['errorsCount']} TS errors"
+    print("  [PASS] Test 4: Root SESSION_STATE.md (4 tasks) lulus di Python (exit 0) & TypeScript (valid=true, 0 error)")
+
     print("\n>>> ALL AUTOMATED PARITY TESTS PASSED SUCCESSFULLY! <<<")
 
 if __name__ == "__main__":

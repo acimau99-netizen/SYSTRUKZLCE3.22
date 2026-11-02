@@ -12,15 +12,16 @@ import checklistsTemplate from '../../templates/CHECKLISTS.template.md?raw';
 import changelogTemplate from '../../templates/CHANGELOG.template.md?raw';
 import domainBookingProfile from '../../templates/profiles/DOMAIN_BOOKING.profile.md?raw';
 import sessionStateExample from '../../examples/SESSION_STATE.example.md?raw';
+import sessionStateRoot from '../../SESSION_STATE.md?raw';
 
 export const ZLCE_TEMPLATES: TemplateItem[] = [
   {
     id: 'session-state',
-    title: 'SESSION_STATE.md (Single Source of Truth)',
+    title: 'SESSION_STATE.md (Single Source of Truth - Proyek ZLCE Studio)',
     filename: 'SESSION_STATE.md',
     category: 'state',
-    description: 'Sumber kebenaran tunggal status task, catatan serah terima, WAL checkpoint, dan audit state.',
-    content: sessionStateTemplate
+    description: 'Sumber kebenaran tunggal status task, catatan serah terima, WAL checkpoint, dan audit state proyek 4 task aktif.',
+    content: sessionStateRoot
   },
   {
     id: 'blueprint',
@@ -96,5 +97,5 @@ export const ZLCE_TEMPLATES: TemplateItem[] = [
   }
 ];
 
-// Initial prefilled example for first-time onboarding and reset
-export const INITIAL_SESSION_STATE_MD = sessionStateExample;
+// Initial canonical 4-task project session state for first-time onboarding and reset
+export const INITIAL_SESSION_STATE_MD = sessionStateRoot;

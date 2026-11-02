@@ -156,7 +156,11 @@ def main(argv):
                 warns.append("WAL terisi tetapi '%s' kosong" % k)
 
     # --- TASKS.md silang
-    tp = os.path.join(root, "TASKS.md")
+    if ap_state:
+        state_dir = os.path.dirname(ap_state) or "."
+        tp = os.path.join(state_dir, "TASKS.md")
+    else:
+        tp = os.path.join(root, "TASKS.md")
     if os.path.exists(tp):
         tids = set(re.findall(r"^###\s+(%s)\b" % TID, read(tp), re.M))
         for t in sorted(tids - set(ids)):

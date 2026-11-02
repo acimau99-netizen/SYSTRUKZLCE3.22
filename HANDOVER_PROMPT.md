@@ -1,4 +1,4 @@
-# HANDOVER PROMPT v3.2.2 (PATEN): PINDAH SESI / PINDAH AI DI TENGAH PROYEK
+# HANDOVER PROMPT v3.3.0 (PATEN): PINDAH SESI / PINDAH AI DI TENGAH PROYEK
 
 Prompt ini tetap: tidak diubah antar-sesi, antar-AI, antar-proyek. Semua status ada di `SESSION_STATE.md`. Cocok untuk tiga situasi: (1) pindah sesi secara terencana, (2) pindah ke AI lain, (3) **sesi terputus** (mode RECOVERY terdeteksi otomatis dari WAL).
 

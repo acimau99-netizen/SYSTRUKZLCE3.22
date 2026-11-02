@@ -303,7 +303,8 @@ export function validateSessionState(content: string): ValidationResult {
         issues.push({
           type: 'error',
           code: 'ACTIVE_STATUS_MISMATCH',
-          message: `Status Task Aktif di header (${actStatusRaw}) != status di matriks (${byId.get(activeTid)?.status}) untuk task ${activeTid}.`
+          message: `Status Task Aktif di header (${actStatusRaw}) != status di matriks (${byId.get(activeTid)?.status}) untuk task ${activeTid}.`,
+          fixable: true
         });
         errorsCount++;
       }
@@ -313,7 +314,8 @@ export function validateSessionState(content: string): ValidationResult {
       issues.push({
         type: 'error',
         code: 'LAST_DONE_NOT_DONE',
-        message: `Task Terakhir DONE ${lastDoneTid} berstatus '${byId.get(lastDoneTid)?.status}' di matriks (seharusnya DONE).`
+        message: `Task Terakhir DONE ${lastDoneTid} berstatus '${byId.get(lastDoneTid)?.status}' di matriks (seharusnya DONE).`,
+        fixable: true
       });
       errorsCount++;
     }
@@ -322,7 +324,8 @@ export function validateSessionState(content: string): ValidationResult {
       issues.push({
         type: 'error',
         code: 'IN_PROGRESS_HEADER_MISMATCH',
-        message: `Task IN_PROGRESS di matriks (${inProgressTasks[0]}) != Task Aktif di header (${activeTid}).`
+        message: `Task IN_PROGRESS di matriks (${inProgressTasks[0]}) != Task Aktif di header (${activeTid}).`,
+        fixable: true
       });
       errorsCount++;
     }
@@ -339,7 +342,8 @@ export function validateSessionState(content: string): ValidationResult {
       issues.push({
         type: 'warning',
         code: 'WAL_EMPTY_WHILE_IN_PROGRESS',
-        message: `${inProgressTasks[0]} IN_PROGRESS tetapi WAL kosong (risiko kehilangan konteks bila sesi terputus).`
+        message: `${inProgressTasks[0]} IN_PROGRESS tetapi WAL kosong (risiko kehilangan konteks bila sesi terputus).`,
+        fixable: true
       });
       warningsCount++;
     }
@@ -348,7 +352,8 @@ export function validateSessionState(content: string): ValidationResult {
       issues.push({
         type: 'warning',
         code: 'WAL_NOT_EMPTY_NO_IN_PROGRESS',
-        message: `WAL berisi ${walTask} padahal tidak ada task IN_PROGRESS (kosongkan setelah DONE).`
+        message: `WAL berisi ${walTask} padahal tidak ada task IN_PROGRESS (kosongkan setelah DONE).`,
+        fixable: true
       });
       warningsCount++;
     }
@@ -357,7 +362,8 @@ export function validateSessionState(content: string): ValidationResult {
       issues.push({
         type: 'error',
         code: 'WAL_TASK_MISMATCH',
-        message: `WAL menunjuk ${walTask} tetapi task IN_PROGRESS di matriks adalah ${inProgressTasks[0]}.`
+        message: `WAL menunjuk ${walTask} tetapi task IN_PROGRESS di matriks adalah ${inProgressTasks[0]}.`,
+        fixable: true
       });
       errorsCount++;
     }
@@ -366,7 +372,8 @@ export function validateSessionState(content: string): ValidationResult {
       issues.push({
         type: 'error',
         code: 'WAL_NOT_CLEARED_AFTER_DONE',
-        message: `WAL belum dikosongkan padahal task ${walTask} sudah DONE.`
+        message: `WAL belum dikosongkan padahal task ${walTask} sudah DONE.`,
+        fixable: true
       });
       errorsCount++;
     }
@@ -400,6 +407,13 @@ export function validateSessionState(content: string): ValidationResult {
     const lineNum = i + 1;
 
     if (line.includes('Timestamp Audit:') || line.includes('Diperbarui:')) {
+      // If line is Diperbarui and is empty or '-', skip checking
+      if (line.includes('Diperbarui:')) {
+        const afterColon = line.split('Diperbarui:')[1]?.replace(/[*_` ]/g, '').trim();
+        if (!afterColon || afterColon === '-') {
+          continue;
+        }
+      }
       foundAuditTimestamp = true;
       const hasTimePattern = /\b\d{1,2}:\d{2}(?::\d{2})?\b/.test(line);
       const hasFallback = line.includes('jam: ?');
@@ -409,7 +423,8 @@ export function validateSessionState(content: string): ValidationResult {
           type: 'warning',
           code: 'CLOCK_RULE_X1_FORMAT',
           message: `Baris ${lineNum}: Timestamp harus mencantumkan waktu valid atau format fallback 'jam: ?' (Aturan X1).`,
-          line: lineNum
+          line: lineNum,
+          fixable: true
         });
         warningsCount++;
       }
